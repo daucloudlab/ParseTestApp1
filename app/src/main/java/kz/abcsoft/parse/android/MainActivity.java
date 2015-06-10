@@ -1,5 +1,8 @@
 package kz.abcsoft.parse.android;
 
+import android.app.ProgressDialog;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -7,12 +10,16 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.GetCallback;
+import com.parse.GetDataCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
+import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
@@ -22,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
     private ParseObject testObject ;
     private TextView tvResult ;
 
+    private Button button;
+    private ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         ParseAnalytics.trackAppOpened(getIntent());
         tvResult = (TextView)findViewById(R.id.textView) ;
+        button = (Button)findViewById(R.id.button) ;
 
     }
 
@@ -62,17 +73,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onGetDataClick(View view){
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("TestObject") ;
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("TestObject");
 
         query.getFirstInBackground(new GetCallback<ParseObject>() {
             @Override
             public void done(ParseObject parseObject, ParseException e) {
-                if(e == null){
-                    Log.d("LOG", parseObject.getString("cat")) ;
+                if (e == null) {
+                    Log.d("LOG", parseObject.getString("cat"));
                     tvResult.setText(parseObject.getString("cat"));
                 }else{
 
                 }
+            }
+        });
+    }
+
+    public void onGetImage(View view){
+        progressDialog = ProgressDialog.show(MainActivity.this, "","Downloading Image...", true);
+
+        ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Images") ;
+        query.getInBackground("vl6P1M75tJ", new GetCallback<ParseObject>() {
+            @Override
+            public void done(ParseObject parseObject, ParseException e) {
+                ParseFile fileObject = (ParseFile) parseObject.get("ImageFile") ;
+                fileObject.getDataInBackground(new GetDataCallback() {
+                    @Override
+                    public void done(byte[] bytes, ParseException e) {
+                        if( e == null){
+                            Log.d("TEST", "Данные получены") ;
+                            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length) ;
+                            ImageView image = (ImageView)findViewById(R.id.image) ;
+                            image.setImageBitmap(bmp);
+                            progressDialog.dismiss();
+                        }else{
+                            Log.d("TEST", "У нас проблемы!") ;
+                        }
+                    }
+                });
             }
         });
     }
