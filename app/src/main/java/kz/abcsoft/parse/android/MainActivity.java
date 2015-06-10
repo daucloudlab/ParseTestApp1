@@ -23,6 +23,8 @@ import com.parse.ParseFile;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
+import java.io.ByteArrayOutputStream;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvResult ;
 
     private Button button;
+    private Button uploadButton ;
     private ProgressDialog progressDialog;
 
     @Override
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         ParseAnalytics.trackAppOpened(getIntent());
         tvResult = (TextView)findViewById(R.id.textView) ;
         button = (Button)findViewById(R.id.button) ;
+        uploadButton = (Button)findViewById(R.id.upload_button) ;
 
     }
 
@@ -81,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 if (e == null) {
                     Log.d("LOG", parseObject.getString("cat"));
                     tvResult.setText(parseObject.getString("cat"));
-                }else{
+                } else {
 
                 }
             }
@@ -95,22 +99,39 @@ public class MainActivity extends AppCompatActivity {
         query.getInBackground("vl6P1M75tJ", new GetCallback<ParseObject>() {
             @Override
             public void done(ParseObject parseObject, ParseException e) {
-                ParseFile fileObject = (ParseFile) parseObject.get("ImageFile") ;
+                ParseFile fileObject = (ParseFile) parseObject.get("ImageFile");
                 fileObject.getDataInBackground(new GetDataCallback() {
                     @Override
                     public void done(byte[] bytes, ParseException e) {
-                        if( e == null){
-                            Log.d("TEST", "Данные получены") ;
-                            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length) ;
-                            ImageView image = (ImageView)findViewById(R.id.image) ;
+                        if (e == null) {
+                            Log.d("TEST", "Данные получены");
+                            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            ImageView image = (ImageView) findViewById(R.id.image);
                             image.setImageBitmap(bmp);
                             progressDialog.dismiss();
-                        }else{
-                            Log.d("TEST", "У нас проблемы!") ;
+                        } else {
+                            Log.d("TEST", "У нас проблемы!");
                         }
                     }
                 });
             }
         });
+    }
+
+    public void onSetImage(View view){
+
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher) ;
+        ByteArrayOutputStream stream = new ByteArrayOutputStream() ;
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream) ;
+        byte [] image = stream.toByteArray() ;
+
+        ParseFile parseFile = new ParseFile("icon.png", image) ;
+        parseFile.saveInBackground() ;
+
+        ParseObject imgupload = new ParseObject("Images") ;
+        imgupload.put("ImageFile", parseFile) ;
+        imgupload.saveInBackground() ;
+
+        Toast.makeText(MainActivity.this, "Image Uploaded",Toast.LENGTH_SHORT).show();
     }
 }

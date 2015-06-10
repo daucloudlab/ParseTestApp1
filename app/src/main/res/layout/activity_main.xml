@@ -41,6 +41,12 @@
             android:layout_height="wrap_content"
             android:text="Скачать картинку"
             android:onClick="onGetImage"/>
+        <Button
+            android:id = "@+id/upload_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text = "Закачать картинку"
+            android:onClick="onSetImage"/>
 
         <ImageView
             android:id="@+id/image"
